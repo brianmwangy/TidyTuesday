@@ -1,0 +1,126 @@
+---
+title: "week 1_2022"
+output: html_document
+---
+
+#loading required libraries
+```{r}
+library(tidyverse)
+library(gt)
+library(gtExtras)
+```
+
+#loading Africa cup data
+```{r}
+africa<-read_csv("E:/Personal/2022/Data science/R/Tidy_Tuesday/TidyTuesday/Week 1/Africa cup.csv") %>% janitor::clean_names()
+```
+
+#creating image columns
+```{r}
+#adding flags column
+africa<-africa %>% mutate(
+  country=case_when(
+    str_detect(country,"Egypt") ~ "E:/Personal/2022/Data science/R/Tidy_Tuesday/TidyTuesday/Week 1/www/Egypt.png",
+    str_detect(country,"Cameroon" ) ~ "E:/Personal/2022/Data science/R/Tidy_Tuesday/TidyTuesday/Week 1/www/Cameroon.png",
+    str_detect(country,"Ghana" ) ~ "E:/Personal/2022/Data science/R/Tidy_Tuesday/TidyTuesday/Week 1/www/Ghana.png",
+    str_detect(country,"Nigeria" ) ~ "E:/Personal/2022/Data science/R/Tidy_Tuesday/TidyTuesday/Week 1/www/Nigeria.png",
+    str_detect(country,"Algeria" ) ~ "E:/Personal/2022/Data science/R/Tidy_Tuesday/TidyTuesday/Week 1/www/Algeria.png",
+    str_detect(country,"Ivory Coast" ) ~ "E:/Personal/2022/Data science/R/Tidy_Tuesday/TidyTuesday/Week 1/www/Ivory Coast.png",
+    str_detect(country,"Democratic Republic of Congo" ) ~ "E:/Personal/2022/Data science/R/Tidy_Tuesday/TidyTuesday/Week 1/www/Democratic_Republic_of_the_Congo.png",
+    str_detect(country,"Zambia" ) ~ "E:/Personal/2022/Data science/R/Tidy_Tuesday/TidyTuesday/Week 1/www/Zambia.png",
+    str_detect(country,"Tunisia" ) ~ "E:/Personal/2022/Data science/R/Tidy_Tuesday/TidyTuesday/Week 1/www/Tunisia.png",
+    str_detect(country,"South Africa" ) ~ "E:/Personal/2022/Data science/R/Tidy_Tuesday/TidyTuesday/Week 1/www/South Africa.png",
+    str_detect(country,"Morocco" ) ~ "E:/Personal/2022/Data science/R/Tidy_Tuesday/TidyTuesday/Week 1/www/Morocco.png",
+     str_detect(country,"People Republic of Congo" ) ~ "E:/Personal/2022/Data science/R/Tidy_Tuesday/TidyTuesday/Week 1/www/Republic_of_the_Congo.png",
+     str_detect(country,"Sudan" ) ~ "E:/Personal/2022/Data science/R/Tidy_Tuesday/TidyTuesday/Week 1/www/Sudan.png",
+    str_detect(country,"Ethiopia" ) ~ "E:/Personal/2022/Data science/R/Tidy_Tuesday/TidyTuesday/Week 1/www/Ethiopia.png",
+  )
+)
+
+```
+
+
+#creating table
+```{r}
+tab<-africa %>% gt()
+
+#customizing table
+table_output<-africa %>%
+  gt() %>% 
+  gt_theme_guardian() %>%
+  
+  #add title and subtitle
+  tab_header(
+    title = "AFRICA CUP OF NATIONS TABLE",
+    
+    #use markdown syntax with md()
+    subtitle = md("**Summary**")
+  ) %>% 
+  
+  #customizing the title
+  tab_style(
+    #select object to modify
+    locations = cells_title(groups ="title"),
+
+    #specifying text style
+    style = list(
+      cell_text(
+        font=google_font(name = "Bebas Neue"),
+        size = "x-large",
+        color = "indianred",
+        align = "center"
+      )
+    )
+  ) %>%
+  
+  #customizing the subtitle
+  tab_style(
+    #select object to modify
+    locations = cells_title(groups ="subtitle"),
+
+    #specifying text style
+    style = list(
+      cell_text(
+        font=google_font(name = "Bebas Neue"),
+        size = "large",
+        color = "indianred",
+        align = "center"
+      )
+    )
+  ) %>%
+  
+  #Add flag images
+  gt_img_rows(
+    columns = country,height = 20
+  ) %>%
+  
+  #rename columns
+  cols_label(
+    country="Country",
+    wins="Total Wins",
+    overall_top_goalscorers="Overall Top Goalscorers",
+    goals_scored="Goals Scored",
+    country_of_origin="Country of Origin"
+  ) %>% 
+  
+  #highlight specific rows
+  gt_highlight_rows(
+    
+    #row to highlight
+    rows=1,
+    
+    #bg color
+    fill = "mediumpurple",
+    
+    #bold for target column only
+    bold_target_only = TRUE,
+    
+    #select target column
+    target_col = c(country,overall_top_goalscorers)
+    
+  )
+  
+
+table_output
+```
+
