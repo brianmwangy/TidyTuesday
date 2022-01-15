@@ -20,29 +20,29 @@ africa<-read_csv("E:/Personal/2022/Data science/R/Tidy_Tuesday/TidyTuesday/Week 
 #adding flags column
 africa<-africa %>% mutate(
   country=case_when(
-    str_detect(country,"Egypt") ~ "E:/Personal/2022/Data science/R/Tidy_Tuesday/TidyTuesday/Week 1/www/Egypt.png",
-    str_detect(country,"Cameroon" ) ~ "E:/Personal/2022/Data science/R/Tidy_Tuesday/TidyTuesday/Week 1/www/Cameroon.png",
-    str_detect(country,"Ghana" ) ~ "E:/Personal/2022/Data science/R/Tidy_Tuesday/TidyTuesday/Week 1/www/Ghana.png",
-    str_detect(country,"Nigeria" ) ~ "E:/Personal/2022/Data science/R/Tidy_Tuesday/TidyTuesday/Week 1/www/Nigeria.png",
-    str_detect(country,"Algeria" ) ~ "E:/Personal/2022/Data science/R/Tidy_Tuesday/TidyTuesday/Week 1/www/Algeria.png",
-    str_detect(country,"Ivory Coast" ) ~ "E:/Personal/2022/Data science/R/Tidy_Tuesday/TidyTuesday/Week 1/www/Ivory Coast.png",
-    str_detect(country,"Democratic Republic of Congo" ) ~ "E:/Personal/2022/Data science/R/Tidy_Tuesday/TidyTuesday/Week 1/www/Democratic_Republic_of_the_Congo.png",
-    str_detect(country,"Zambia" ) ~ "E:/Personal/2022/Data science/R/Tidy_Tuesday/TidyTuesday/Week 1/www/Zambia.png",
-    str_detect(country,"Tunisia" ) ~ "E:/Personal/2022/Data science/R/Tidy_Tuesday/TidyTuesday/Week 1/www/Tunisia.png",
-    str_detect(country,"South Africa" ) ~ "E:/Personal/2022/Data science/R/Tidy_Tuesday/TidyTuesday/Week 1/www/South Africa.png",
-    str_detect(country,"Morocco" ) ~ "E:/Personal/2022/Data science/R/Tidy_Tuesday/TidyTuesday/Week 1/www/Morocco.png",
-     str_detect(country,"People Republic of Congo" ) ~ "E:/Personal/2022/Data science/R/Tidy_Tuesday/TidyTuesday/Week 1/www/Republic_of_the_Congo.png",
-     str_detect(country,"Sudan" ) ~ "E:/Personal/2022/Data science/R/Tidy_Tuesday/TidyTuesday/Week 1/www/Sudan.png",
-    str_detect(country,"Ethiopia" ) ~ "E:/Personal/2022/Data science/R/Tidy_Tuesday/TidyTuesday/Week 1/www/Ethiopia.png",
-  )
-)
+    str_detect(country,"Egypt") ~ "/Week 1/www/Egypt.png",
+    str_detect(country,"Cameroon" ) ~ "/Week 1/www/Cameroon.png",
+    str_detect(country,"Ghana" ) ~ "/Week 1/www/Ghana.png",
+    str_detect(country,"Nigeria" ) ~ "/Week 1/www/Nigeria.png",
+    str_detect(country,"Algeria" ) ~ "/Week 1/www/Algeria.png",
+    str_detect(country,"Ivory Coast" ) ~ "/Week 1/www/Ivory Coast.png",
+    str_detect(country,"Democratic Republic of Congo" ) ~ "/Week 1/www/DRC.png",
+    str_detect(country,"Zambia" ) ~ "/Week 1/www/Zambia.png",
+    str_detect(country,"Tunisia" ) ~ "/Week 1/www/Tunisia.png",
+    str_detect(country,"South Africa" ) ~ "/Week 1/www/South Africa.png",
+    str_detect(country,"Morocco" ) ~ "/Week 1/www/Morocco.png",
+     str_detect(country,"People Republic of Congo") ~ "/Week 1/www/RC.png",
+     str_detect(country,"Sudan" ) ~ "/Week 1/www/Sudan.png",
+    str_detect(country,"Ethiopia" ) ~ "/Week 1/www/Ethiopia.png",
+  ),
+  goal_count=goals_scored
+) 
 
 ```
 
 
 #creating table
 ```{r}
-tab<-africa %>% gt()
 
 #customizing table
 table_output<-africa %>%
@@ -91,8 +91,39 @@ table_output<-africa %>%
   
   #Add flag images
   gt_img_rows(
-    columns = country,height = 20
+    columns = country,img_source = "local",height = 20
   ) %>%
+  
+  #Add wins image
+  gt_fa_repeats(
+    column = wins,
+    palette = "orange",
+    name = "trophy",
+    align = "left"
+  ) %>%
+  
+  #Add goals scored bar plot
+  gt_plt_bar(
+    #column with data
+    column=goals_scored,
+    color ="orange",
+    #barplot width
+    width = 60
+    
+  ) %>%
+  
+  #highlight specific rows
+  gt_highlight_rows(
+    #row to highlight
+    rows=1,
+    #bg color
+    fill = "mediumpurple",
+    #bold for target column only
+    bold_target_only = TRUE,
+    #select target column
+    target_col = c(country,overall_top_goalscorers)
+    
+  ) %>% 
   
   #rename columns
   cols_label(
@@ -100,27 +131,20 @@ table_output<-africa %>%
     wins="Total Wins",
     overall_top_goalscorers="Overall Top Goalscorers",
     goals_scored="Goals Scored",
-    country_of_origin="Country of Origin"
-  ) %>% 
+    goal_count= ""
+  ) %>%
   
-  #highlight specific rows
-  gt_highlight_rows(
-    
-    #row to highlight
-    rows=1,
-    
-    #bg color
-    fill = "mediumpurple",
-    
-    #bold for target column only
-    bold_target_only = TRUE,
-    
-    #select target column
-    target_col = c(country,overall_top_goalscorers)
-    
-  )
-  
+  #footer
+  tab_source_note(source_note = "#TidyTuesday Week 1 BYOD | Brian Mwangi")
 
-table_output
+
+
+```
+
+#saving the output
+```{r}
+table_output %>% gtsave(
+  "/Week 1/AFCON.png"
+)
 ```
 
