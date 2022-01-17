@@ -1,0 +1,143 @@
+---
+title: "week 2_2022"
+output: html_document
+---
+
+#loading required libraries
+```{r}
+library(pacman)
+p_load(tidyverse,tidytuesdayR,geomtextpath,ggmap,ggtext,ggthemes,extrafont,ggimage)
+
+```
+
+#loading week 2 dataset
+```{r}
+df<-tt_load("2022-01-11")
+```
+
+#subseting data
+```{r}
+df_colony<-df$colony
+```
+
+#data overview
+```{r}
+head(df_colony)
+```
+#calculate yearly loss and renovation
+```{r}
+df_colony_sum<-df_colony %>% 
+  filter(state=="United States") %>%
+  group_by(year) %>% 
+  summarise(colony_lost=sum(colony_lost,na.rm = TRUE)*-1,
+            colony_reno=sum(colony_reno,na.rm = TRUE)) %>%
+  pivot_longer(-year)
+  
+head(df_colony_sum)
+```
+
+#color scheme
+```{r}
+mycolor<-c("#002060","#ffc000")
+```
+
+#custome theme function
+```{r}
+#setting theme
+custom_theme<-function()
+{
+  #setting font
+Font<-"Comic Sans MS"
+
+theme_economist() %+replace%
+  
+  theme(
+    ########grid elements########
+    # panel.grid.major = element_blank(),    #strip major gridlines
+    # panel.grid.minor = element_blank(),    #strip minor gridlines
+    # axis.ticks = element_blank(),          #strip axis ticks
+    panel.grid.major.y = element_line(color = "grey95"),
+    
+    ######text elements###########
+    plot.title = element_markdown(             #title
+                   family = Font,            #set font family
+                   size = 14,                #set font size
+                   face = 'bold',            #bold typeface
+                   hjust = 0,                #left align
+                   vjust = 2),               #raise slightly
+      
+      plot.subtitle = element_markdown(          #subtitle
+                   family = Font,            #font family
+                   size = 12,hjust = 0),               #font size
+      
+      plot.caption = element_markdown(           #caption
+                   family = Font,            #font family
+                   size = 9,                 #font size
+                   hjust = 1),               #right align
+      
+      axis.title = element_text(             #axis titles
+                   family = Font,            #font family
+                   size = 10),               #font size
+      
+      axis.text = element_text(              #axis text
+                   family = Font,            #axis famuly
+                   size = 9),                #font size
+      
+      axis.text.x = element_text(            #margin for axis text
+                    margin=margin(5, b = 10)),
+    
+      legend.title = element_blank(),
+      legend.text = element_blank(),
+      legend.position = "none"
+    
+    ###########plot#################
+    
+  )
+}
+
+```
+
+#plot
+```{r}
+plt<-df_colony_sum %>%
+  ggplot(aes(x=year,y=value,fill=name,color=name,group=name))+
+  geom_col()+
+  labs(x="Year",y="Total Bee Colonies",
+       subtitle = "Total annual bee colonies <b style ='color:#002060'>lost</b> and <b style ='color:#ffc000'>renovated</b> in the United States.",
+       caption = "Source: **U.S. Department of Agriculture | Viz by: Brian Mwangi**")+
+  geom_text(aes(label=value,family="Century Gothic"),size=3,color="black")+
+  coord_flip()+
+  scale_y_continuous(labels = scales::number_format(scale = 0.000001, suffix = "m"),breaks = seq(-2e6,2e6,by=250000))+
+  scale_x_continuous(breaks = c(2015,2016,2017,2018,2019,2020,2021))+
+  scale_fill_manual(values = mycolor,labels=c("Colony Loss", "Colony Renovated"))+
+   scale_color_manual(values = mycolor,labels=c("Colony Loss", "Colony Renovated"))+
+  custom_theme()
+
+plt
+```
+
+#add bee images to tibble
+```{r}
+bees_img<-tibble(img=c("./Week  2/www/bee_loss.png","./Week  2/www/bee_reno.png"),name=c("colony_lost","colony_reno"),
+                 label=c("Lost\nColonies","Renovated\nColonies"),
+                 x=c(2021,2021),
+                 y=c(-1.25e6,1.25e6),
+                 x_position=x-if_else(label=="Lost\nColonies",1.5e6,-1.54e6),
+                 y_position=2021)
+```
+
+#add bee images to plot
+```{r}
+bee_plot<-plt +
+  geom_image(data=bees_img,
+             aes(x=x,y=y,image=img,color=name),
+             size=0.1,asp=1)+
+  geom_text(data = bees_img, aes(x=y_position,y=x_position,label=label,color=name))
+bee_plot
+```
+
+#saving final plot
+```{r}
+ggsave("./Week  2/www/bees.png", dpi = 320, width = 8, height = 6)
+```
+
