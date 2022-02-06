@@ -1,0 +1,106 @@
+---
+title: "Week 3"
+output: html_document
+---
+
+#loading libraries
+```{r}
+pacman::p_load(dplyr,showtext,ggtext,ggalluvial,ggthemes,extrafont,ggplot2)
+
+
+```
+
+#loading week 3 chocolate dataset
+```{r}
+choco<-read_csv('https://raw.githubusercontent.com/rfordatascience/tidytuesday/master/data/2022/2022-01-18/chocolate.csv')
+```
+
+#check dataset content
+```{r}
+head(choco)
+```
+#filtering companies with most exports
+```{r}
+top_exporters<-choco %>% 
+  count(country_of_bean_origin) %>%
+  filter(country_of_bean_origin!="Blend") %>%
+  arrange(-n) %>% top_n(5)
+top_exporters
+```
+
+#filtering top importers
+```{r}
+top_importers<-choco %>% 
+  count(company_location,sort = T) %>% top_n(5)
+top_importers
+```
+#filtering by top manufacturers
+```{r}
+top_manufacturers<-choco %>% 
+  count(company_manufacturer,sort = T) %>%
+  top_n(5)
+top_manufacturers
+```
+
+#filtering the dataset
+```{r}
+top_choco<-choco %>%
+  filter(country_of_bean_origin %in% top_exporters$country_of_bean_origin) %>%
+  filter(company_location %in% top_importers$company_location) %>%
+  filter(company_manufacturer %in% top_manufacturers$company_manufacturer) %>%
+  count(country_of_bean_origin,company_location,company_manufacturer,sort = T) %>%
+  rename(Total=n,
+         Origin=country_of_bean_origin,
+         Destination=company_location,
+         Manufacturer=company_manufacturer
+         )
+top_choco
+```
+
+#color palettes
+```{r}
+color_palette<-c("#008253","#393d83","#fd7e14","#ffc107","#873e23")
+#colors <- hcl.colors(4, "Red-Blue")
+ Font<-"Comic Sans MS"
+```
+
+#plotting
+```{r}
+plt<-top_choco %>%
+  ggplot(aes(
+    axis1=Origin,axis2=Destination,axis3=Manufacturer,y=Total
+  ))+
+  geom_alluvium(aes(fill=Origin),curve_type = "quintic",alpha=0.6,width = 1/12)+
+  geom_stratum(width = 1/4)+
+  scale_fill_manual(values = color_palette)+
+  scale_x_continuous(breaks = 1:3,labels = c("Origin","Destination Country","Company"),
+                     position = "top")+
+  geom_text(stat = "stratum",aes(label=after_stat(stratum)),
+            color="black",family=Font,size=2.9)+
+  labs(title = "The chart shows chocolate's path from raw cocoa bean to the chocolate bar for top exporters<p>, importers and manufactuting companies.",
+        caption = "**#TidyTuesday | Viz by: Brian Mwangi**")+
+  theme_void()+
+  theme(
+    legend.position = "none",
+    plot.title = element_markdown(            
+                   family = Font,            
+                   size = 13,                
+                   hjust = 0,                
+                   vjust = 2), 
+     plot.caption = element_markdown(         
+                   family = Font,            
+                   size = 9,                 
+                   hjust = 1), 
+     axis.text.x = element_text(              
+                   family = Font,            
+                   size = 9),
+    axis.text.y = element_blank()
+  )
+
+```
+#saving output
+```{r}
+ggsave("./Week 3/www/cocoa.png",plt,dpi = 320, width = 8, height = 6)
+```
+
+
