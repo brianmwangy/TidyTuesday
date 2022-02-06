@@ -1,0 +1,144 @@
+---
+title: "Tidy Tuesday week 4"
+output: html_document
+---
+
+#loading libraries
+```{r}
+library(tidyverse)
+library(glue)
+library(extrafont)
+library(showtext)
+```
+
+#loading week 4 data
+```{r}
+ratings<-read_csv('https://raw.githubusercontent.com/rfordatascience/tidytuesday/master/data/2022/2022-01-25/ratings.csv')
+
+```
+
+#checking contents
+```{r}
+head(ratings)
+```
+#creating ratings2 
+```{r}
+ratings2<-ratings %>%
+  filter(between(year,1900,2021)) %>%
+  mutate(decade=floor(year/10)*10,
+         decade=glue("{decade}s"))
+```
+
+#creating ratings3
+```{r}
+ratings3<-ratings2 %>%
+  group_by(decade) %>%
+  summarise(
+    n=n(),
+    min_rate=min(average),
+    max_rate=max(average),
+    min_rnk=min(rank),
+    max_rnk=max(rank)
+  ) %>%
+  pivot_longer(min_rate:max_rate) 
+```
+
+#filtering max and min average
+```{r}
+df<-ratings2 %>% 
+  group_by(decade) %>%
+  filter(average==min(average)|average==max(average)) %>%
+  left_join(ratings3,by="decade") %>%
+  select(name.x,average,decade) %>%
+  distinct()
+```
+
+#color scheme
+```{r}
+mycolor<-c("#002060","#ffc000")
+```
+
+#custome theme function
+```{r}
+#setting theme
+custom_theme<-function()
+{
+  #setting font
+Font<-"Comic Sans MS"
+
+theme_economist() %+replace%
+  
+  theme(
+    ########grid elements########
+    # panel.grid.major = element_blank(),    #strip major gridlines
+    # panel.grid.minor = element_blank(),    #strip minor gridlines
+    # axis.ticks = element_blank(),          #strip axis ticks
+    panel.grid.major.y = element_line(color = "grey95"),
+    panel.grid.major.x = element_line(color = "grey86"),
+    ######text elements###########
+    plot.title = element_markdown(             #title
+                   family = Font,            #set font family
+                   size = 14,                #set font size
+                   face = 'bold',            #bold typeface
+                   hjust = 0,                #left align
+                   vjust = 2),               #raise slightly
+      
+      plot.subtitle = element_markdown(          #subtitle
+                   family = Font,            #font family
+                   size = 11,hjust = 0),               #font size
+      
+      plot.caption = element_markdown(           #caption
+                   family = Font,            #font family
+                   size = 9,                 #font size
+                   hjust = 1),               #right align
+      
+      axis.title = element_markdown(             #axis titles
+                   family = Font,            #font family
+                   size = 10),               #font size
+      
+      axis.text = element_markdown(              #axis text
+                   family = Font,            #axis famuly
+                   size = 9),                #font size
+      
+      axis.text.x = element_text(            #margin for axis text
+                    margin=margin(5, b = 10)),
+    
+      legend.title = element_blank(),
+      legend.text = element_blank(),
+      legend.position = "none"
+    
+    ###########plot#################
+    
+  )
+}
+
+```
+
+#plotting
+```{r}
+ratings3 %>%
+  ggplot(aes(x=value,y=decade))+
+  geom_line(aes(group=decade), color="#873e23")+
+  geom_point(aes(color=name),size=4)+
+  geom_text(data = df,aes(average,decade,label=name.x),
+            size=2,family="Comic Sans MS",vjust=-1)+
+  scale_color_manual(values = mycolor)+
+  scale_x_continuous(limits = c(0,10),expand = c(0,0))+
+  labs(x="Average rating", y="Decade",
+       title="Board games ratings",
+       subtitle="Board games with the <span style='color:#ffc000'>**lowest**</span> and <span style='color:#002060'>**highest**</span> average rating by decade, <p> published between 1900 and 2021.",
+       caption="**#TidyTuesday Week 4| Viz by: Brian Mwangi**")+
+  coord_cartesian(clip="off") +
+  custom_theme()+
+  theme(
+    axis.ticks = element_blank(),
+    plot.title.position = "plot"
+  )
+  
+```
+
+#saving plot
+```{r}
+ggsave("E:/Personal/2022/Data science/R/Tidy_Tuesday/TidyTuesday/Week 4/www/week 4.png", width=7, height=4.8)
+```
+
